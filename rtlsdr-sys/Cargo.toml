@@ -1,0 +1,15 @@
+[package]
+name = "rtlsdr-sys"
+version = "1.0.0"
+authors = ["Mick Koch <mick@kochm.co>"]
+license = "GPLv2"
+build = "build.rs"
+
+[lib]
+name = "rtlsdr_sys"
+
+[dependencies]
+libc = "0.2.4"
+
+[build-dependencies]
+pkg-config = "0.3.6"
