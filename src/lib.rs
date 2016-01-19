@@ -53,11 +53,17 @@ impl RtlSdr {
     }
 
     pub fn enable_agc(&mut self) -> bool {
-        unsafe { ffi::rtlsdr_set_agc_mode(self.0, 1) == 0 }
+        unsafe {
+            ffi::rtlsdr_set_tuner_gain_mode(self.0, 0) == 0 &&
+            ffi::rtlsdr_set_agc_mode(self.0, 1) == 0
+        }
     }
 
     pub fn disable_agc(&mut self) -> bool {
-        unsafe { ffi::rtlsdr_set_agc_mode(self.0, 0) == 0 }
+        unsafe {
+            ffi::rtlsdr_set_tuner_gain_mode(self.0, 1) == 0 &&
+            ffi::rtlsdr_set_agc_mode(self.0, 0) == 0
+        }
     }
 
     pub fn get_tuner_gains(&self, gains: &mut [i32; 32]) -> u32 {
@@ -75,7 +81,10 @@ impl RtlSdr {
     }
 
     pub fn set_tuner_gain(&mut self, gain: i32) -> bool {
-        unsafe { ffi::rtlsdr_set_tuner_gain(self.0, gain) == 0 }
+        unsafe {
+            ffi::rtlsdr_set_tuner_gain_mode(self.0, 1) == 0 &&
+            ffi::rtlsdr_set_tuner_gain(self.0, gain) == 0
+        }
     }
 
     pub fn read_sync(&self, buf: &mut [u8]) -> Option<u32> {
