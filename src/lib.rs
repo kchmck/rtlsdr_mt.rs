@@ -119,8 +119,8 @@ impl RtlSdr {
         unsafe { ffi::rtlsdr_cancel_async(self.0); }
     }
 
-    pub fn reset_buf(&mut self) {
-        unsafe { ffi::rtlsdr_reset_buffer(self.0); }
+    pub fn reset_buf(&mut self) -> bool {
+        unsafe { ffi::rtlsdr_reset_buffer(self.0) == 0 }
     }
 }
 
