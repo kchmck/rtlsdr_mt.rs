@@ -6,4 +6,4 @@ license = "GPLv2"
 
 [dependencies]
 libc = "0.2.4"
-rtlsdr-sys = {version = "1.0.0", path = "rtlsdr-sys"}
+rtlsdr-sys = {version = "1.0.0", path = "../rtlsdr-sys"}
