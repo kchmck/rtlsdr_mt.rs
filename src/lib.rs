@@ -96,7 +96,7 @@ impl RtlSdr {
                                   len, &mut read as *mut c_int)
         };
 
-        if ret >= 0 {
+        if ret == 0 {
             Some(read as u32)
         } else {
             None
