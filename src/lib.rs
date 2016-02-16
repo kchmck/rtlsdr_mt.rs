@@ -108,8 +108,6 @@ impl RtlSdr {
     pub fn read_async<F>(&self, bufs: u32, len: u32, cb: F) -> bool
         where F: FnMut(&[u8])
     {
-        assert!(len % 512 == 0);
-
         let ctx = &cb as *const _ as *mut c_void;
 
         unsafe {
