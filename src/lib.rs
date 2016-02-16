@@ -66,14 +66,16 @@ impl RtlSdr {
         }
     }
 
-    pub fn get_tuner_gains(&self, gains: &mut [i32; 32]) -> u32 {
+    pub fn get_tuner_gains(&self) -> [i32; 32] {
+        let mut gains = [0; 32];
+
         let ret = unsafe {
             ffi::rtlsdr_get_tuner_gains(self.0, gains.as_mut_ptr())
         };
 
         assert!(ret > 0 && ret as usize <= gains.len());
 
-        ret as u32
+        gains
     }
 
     pub fn get_tuner_gain(&self) -> i32 {
