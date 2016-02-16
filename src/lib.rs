@@ -136,7 +136,6 @@ extern fn async_wrapper<F>(buf: *mut c_uchar, len: uint32_t, ctx: *mut c_void)
     let closure = ctx as *mut F;
 
     unsafe {
-        let slice = std::slice::from_raw_parts(buf, len as usize);
-        (*closure)(slice);
+        (*closure)(std::slice::from_raw_parts(buf, len as usize));
     }
 }
