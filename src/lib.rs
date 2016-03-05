@@ -11,6 +11,8 @@ pub fn open(idx: u32) -> Option<(Control, Reader)> {
     })
 }
 
+pub type TunerGains = [i32; 32];
+
 struct Device(ffi::rtlsdr_dev_t);
 
 impl Device {
@@ -89,7 +91,7 @@ impl Control {
         }
     }
 
-    pub fn get_tuner_gains(&self, gains: &mut [i32; 32]) -> u32 {
+    pub fn get_tuner_gains(&self, gains: &mut TunerGains) -> u32 {
         let ret = unsafe {
             ffi::rtlsdr_get_tuner_gains(**self.0, gains.as_mut_ptr())
         };
