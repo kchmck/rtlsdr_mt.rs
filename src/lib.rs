@@ -91,14 +91,14 @@ impl Control {
         }
     }
 
-    pub fn get_tuner_gains(&self, gains: &mut TunerGains) -> u32 {
+    pub fn get_tuner_gains(&self, gains: &mut TunerGains) -> usize {
         let ret = unsafe {
             ffi::rtlsdr_get_tuner_gains(**self.0, gains.as_mut_ptr())
         };
 
         assert!(ret > 0 && ret as usize <= gains.len());
 
-        ret as u32
+        ret as usize
     }
 
     pub fn get_tuner_gain(&self) -> i32 {
