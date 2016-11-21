@@ -30,7 +30,7 @@ impl Device {
         }
     }
 
-    pub fn close(&self) {
+    fn close(&self) {
         unsafe { ffi::rtlsdr_close(self.0); }
     }
 }
