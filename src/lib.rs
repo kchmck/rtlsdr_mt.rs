@@ -53,7 +53,7 @@ impl Control {
         Control(dev)
     }
 
-    pub fn get_sample_rate(&mut self) -> u32 {
+    pub fn sample_rate(&mut self) -> u32 {
         unsafe { ffi::rtlsdr_get_sample_rate(**self.0) }
     }
 
@@ -61,7 +61,7 @@ impl Control {
         unsafe { ffi::rtlsdr_set_sample_rate(**self.0, rate) == 0 }
     }
 
-    pub fn get_center_freq(&self) -> u32 {
+    pub fn center_freq(&self) -> u32 {
         unsafe { ffi::rtlsdr_get_center_freq(**self.0) }
     }
 
@@ -69,7 +69,7 @@ impl Control {
         unsafe { ffi::rtlsdr_set_center_freq(**self.0, freq) == 0 }
     }
 
-    pub fn get_ppm(&self) -> i32 {
+    pub fn ppm(&self) -> i32 {
         unsafe { ffi::rtlsdr_get_freq_correction(**self.0) }
     }
 
@@ -91,7 +91,7 @@ impl Control {
         }
     }
 
-    pub fn get_tuner_gains<'a>(&self, gains: &'a mut TunerGains) -> &'a [i32] {
+    pub fn tuner_gains<'a>(&self, gains: &'a mut TunerGains) -> &'a [i32] {
         let ret = unsafe {
             ffi::rtlsdr_get_tuner_gains(**self.0, gains.as_mut_ptr())
         };
@@ -101,7 +101,7 @@ impl Control {
         &gains[ret as usize..]
     }
 
-    pub fn get_tuner_gain(&self) -> i32 {
+    pub fn tuner_gain(&self) -> i32 {
         unsafe { ffi::rtlsdr_get_tuner_gain(**self.0) }
     }
 
