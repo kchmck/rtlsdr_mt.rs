@@ -98,7 +98,7 @@ impl Control {
 
         assert!(ret > 0 && ret as usize <= gains.len());
 
-        &gains[ret as usize..]
+        &gains[..ret as usize]
     }
 
     pub fn tuner_gain(&self) -> i32 {
