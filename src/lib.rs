@@ -7,7 +7,13 @@ use libc::{c_uchar, uint32_t, c_void};
 
 pub type TunerGains = [i32; 32];
 
-pub fn open(idx: u32) -> Option<(Control, Reader)> {
+/// Error type for this crate.
+pub type Error = ();
+
+/// Result type for this crate.
+pub type Result<T> = std::result::Result<T, Error>;
+
+pub fn open(idx: u32) -> Result<(Control, Reader)> {
     Device::open(idx).map(|dev| Arc::new(dev)).map(|arc| {
         (Control::new(arc.clone()), Reader::new(arc.clone()))
     })
@@ -16,7 +22,7 @@ pub fn open(idx: u32) -> Option<(Control, Reader)> {
 struct Device(ffi::rtlsdr_dev_t);
 
 impl Device {
-    pub fn open(idx: u32) -> Option<Device> {
+    pub fn open(idx: u32) -> Result<Device> {
         let mut dev = Device(0 as *mut c_void);
 
         let ret = unsafe {
@@ -24,9 +30,9 @@ impl Device {
         };
 
         if ret == 0 {
-            Some(dev)
+            Ok(dev)
         } else {
-            None
+            Err(())
         }
     }
 
@@ -57,37 +63,55 @@ impl Control {
         unsafe { ffi::rtlsdr_get_sample_rate(**self.0) }
     }
 
-    pub fn set_sample_rate(&mut self, rate: u32) -> bool {
-        unsafe { ffi::rtlsdr_set_sample_rate(**self.0, rate) == 0 }
+    pub fn set_sample_rate(&mut self, rate: u32) -> Result<()> {
+        if unsafe { ffi::rtlsdr_set_sample_rate(**self.0, rate) } == 0 {
+            Ok(())
+        } else {
+            Err(())
+        }
     }
 
     pub fn center_freq(&self) -> u32 {
         unsafe { ffi::rtlsdr_get_center_freq(**self.0) }
     }
 
-    pub fn set_center_freq(&mut self, freq: u32) -> bool {
-        unsafe { ffi::rtlsdr_set_center_freq(**self.0, freq) == 0 }
+    pub fn set_center_freq(&mut self, freq: u32) -> Result<()> {
+        if unsafe { ffi::rtlsdr_set_center_freq(**self.0, freq) } == 0 {
+            Ok(())
+        } else {
+            Err(())
+        }
     }
 
     pub fn ppm(&self) -> i32 {
         unsafe { ffi::rtlsdr_get_freq_correction(**self.0) }
     }
 
-    pub fn set_ppm(&mut self, ppm: i32) -> bool {
-        unsafe { ffi::rtlsdr_set_freq_correction(**self.0, ppm) == 0 }
-    }
-
-    pub fn enable_agc(&mut self) -> bool {
-        unsafe {
-            ffi::rtlsdr_set_tuner_gain_mode(**self.0, 0) == 0 &&
-            ffi::rtlsdr_set_agc_mode(**self.0, 1) == 0
+    pub fn set_ppm(&mut self, ppm: i32) -> Result<()> {
+        if unsafe { ffi::rtlsdr_set_freq_correction(**self.0, ppm) } == 0 {
+            Ok(())
+        } else {
+            Err(())
         }
     }
 
-    pub fn disable_agc(&mut self) -> bool {
-        unsafe {
-            ffi::rtlsdr_set_tuner_gain_mode(**self.0, 1) == 0 &&
-            ffi::rtlsdr_set_agc_mode(**self.0, 0) == 0
+    pub fn enable_agc(&mut self) -> Result<()> {
+        if unsafe { ffi::rtlsdr_set_tuner_gain_mode(**self.0, 0) } == 0 &&
+           unsafe { ffi::rtlsdr_set_agc_mode(**self.0, 1) } == 0
+        {
+            Ok(())
+        } else {
+            Err(())
+        }
+    }
+
+    pub fn disable_agc(&mut self) -> Result<()> {
+        if unsafe { ffi::rtlsdr_set_tuner_gain_mode(**self.0, 1) } == 0 &&
+           unsafe { ffi::rtlsdr_set_agc_mode(**self.0, 0) } == 0
+        {
+            Ok(())
+        } else {
+            Err(())
         }
     }
 
@@ -105,15 +129,22 @@ impl Control {
         unsafe { ffi::rtlsdr_get_tuner_gain(**self.0) }
     }
 
-    pub fn set_tuner_gain(&mut self, gain: i32) -> bool {
-        unsafe {
-            ffi::rtlsdr_set_tuner_gain_mode(**self.0, 1) == 0 &&
-            ffi::rtlsdr_set_tuner_gain(**self.0, gain) == 0
+    pub fn set_tuner_gain(&mut self, gain: i32) -> Result<()> {
+        if unsafe { ffi::rtlsdr_set_tuner_gain_mode(**self.0, 1) } == 0 &&
+           unsafe { ffi::rtlsdr_set_tuner_gain(**self.0, gain) } == 0
+        {
+            Ok(())
+        } else {
+            Err(())
         }
     }
 
-    pub fn reset_buf(&mut self) -> bool {
-        unsafe { ffi::rtlsdr_reset_buffer(**self.0) == 0 }
+    pub fn reset_buf(&mut self) -> Result<()> {
+        if unsafe { ffi::rtlsdr_reset_buffer(**self.0) } == 0 {
+            Ok(())
+        } else {
+            Err(())
+        }
     }
 
     pub fn cancel_async_read(&mut self) {
@@ -130,13 +161,19 @@ impl Reader {
         Reader(dev)
     }
 
-    pub fn read_async<F>(&mut self, bufs: u32, len: u32, cb: F) -> bool
+    pub fn read_async<F>(&mut self, bufs: u32, len: u32, cb: F) -> Result<()>
         where F: FnMut(&[u8])
     {
         let ctx = &cb as *const _ as *mut c_void;
 
-        unsafe {
-            ffi::rtlsdr_read_async(**self.0, async_wrapper::<F>, ctx, bufs, len) == 0
+        let ret = unsafe {
+            ffi::rtlsdr_read_async(**self.0, async_wrapper::<F>, ctx, bufs, len)
+        };
+
+        if ret == 0 {
+            Ok(())
+        } else {
+            Err(())
         }
     }
 }
