@@ -59,7 +59,7 @@ impl Control {
         Control(dev)
     }
 
-    pub fn sample_rate(&mut self) -> u32 {
+    pub fn sample_rate(&self) -> u32 {
         unsafe { ffi::rtlsdr_get_sample_rate(**self.0) }
     }
 
