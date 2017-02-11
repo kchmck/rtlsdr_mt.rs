@@ -25,11 +25,9 @@ impl Device {
     fn open(idx: u32) -> Result<Device> {
         let mut dev = Device(std::ptr::null_mut());
 
-        let ret = unsafe {
-            ffi::rtlsdr_open(&mut dev.0 as *mut ffi::rtlsdr_dev_t, idx)
-        };
-
-        if ret == 0 {
+        if unsafe { ffi::rtlsdr_open(&mut dev.0, idx) } == 0 &&
+           unsafe { ffi::rtlsdr_reset_buffer(dev.0) } == 0
+        {
             Ok(dev)
         } else {
             Err(())
@@ -136,14 +134,6 @@ impl Control {
         if unsafe { ffi::rtlsdr_set_tuner_gain_mode(**self.0, 1) } == 0 &&
            unsafe { ffi::rtlsdr_set_tuner_gain(**self.0, gain) } == 0
         {
-            Ok(())
-        } else {
-            Err(())
-        }
-    }
-
-    pub fn reset_buf(&mut self) -> Result<()> {
-        if unsafe { ffi::rtlsdr_reset_buffer(**self.0) } == 0 {
             Ok(())
         } else {
             Err(())
