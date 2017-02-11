@@ -22,7 +22,7 @@ pub fn open(idx: u32) -> Result<(Control, Reader)> {
 struct Device(ffi::rtlsdr_dev_t);
 
 impl Device {
-    pub fn open(idx: u32) -> Result<Device> {
+    fn open(idx: u32) -> Result<Device> {
         let mut dev = Device(0 as *mut c_void);
 
         let ret = unsafe {
