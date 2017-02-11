@@ -23,7 +23,7 @@ struct Device(ffi::rtlsdr_dev_t);
 
 impl Device {
     fn open(idx: u32) -> Result<Device> {
-        let mut dev = Device(0 as *mut c_void);
+        let mut dev = Device(std::ptr::null_mut());
 
         let ret = unsafe {
             ffi::rtlsdr_open(&mut dev.0 as *mut ffi::rtlsdr_dev_t, idx)
