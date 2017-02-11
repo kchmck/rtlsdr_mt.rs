@@ -5,13 +5,13 @@ use std::sync::Arc;
 
 use libc::{c_uchar, uint32_t, c_void};
 
+pub type TunerGains = [i32; 32];
+
 pub fn open(idx: u32) -> Option<(Control, Reader)> {
     Device::open(idx).map(|dev| Arc::new(dev)).map(|arc| {
         (Control::new(arc.clone()), Reader::new(arc.clone()))
     })
 }
-
-pub type TunerGains = [i32; 32];
 
 struct Device(ffi::rtlsdr_dev_t);
 
