@@ -88,7 +88,10 @@ impl Control {
     }
 
     pub fn set_ppm(&mut self, ppm: i32) -> Result<()> {
-        if unsafe { ffi::rtlsdr_set_freq_correction(**self.0, ppm) } == 0 {
+        let ret = unsafe { ffi::rtlsdr_set_freq_correction(**self.0, ppm) };
+
+        // librtlsdr returns -2 if the ppm is already set to the given value.
+        if ret == 0 || ret == -2 {
             Ok(())
         } else {
             Err(())
