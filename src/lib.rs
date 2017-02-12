@@ -1,6 +1,9 @@
+#![feature(conservative_impl_trait)]
+
 extern crate libc;
 extern crate rtlsdr_sys as ffi;
 
+use std::ffi::CStr;
 use std::sync::Arc;
 
 use libc::{c_uchar, uint32_t, c_void};
@@ -12,6 +15,18 @@ pub type Error = ();
 
 /// Result type for this crate.
 pub type Result<T> = std::result::Result<T, Error>;
+
+/// Create an iterator over available RTL-SDR devices.
+///
+/// The iterator yields device names in index order, so the device with the first yielded
+/// name can be opened at index 0, and so on.
+pub fn devices() -> impl Iterator<Item = &'static CStr> {
+    let count = unsafe { ffi::rtlsdr_get_device_count() };
+
+    (0..count).map(|idx| unsafe {
+        CStr::from_ptr(ffi::rtlsdr_get_device_name(idx))
+    })
+}
 
 pub fn open(idx: u32) -> Result<(Control, Reader)> {
     Device::open(idx).map(|dev| Arc::new(dev)).map(|arc| {
