@@ -5,5 +5,6 @@ authors = ["Mick Koch <mick@kochm.co>"]
 license = "GPLv2"
 
 [dependencies]
+
 libc = "^0.2.8"
 rtlsdr_sys = {version = "^1.0.0", git = "https://github.com/kchmck/rtlsdr_sys.rs"}
