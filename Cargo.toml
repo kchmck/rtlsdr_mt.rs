@@ -2,9 +2,13 @@
 name = "rtlsdr"
 version = "1.0.0"
 authors = ["Mick Koch <mick@kochm.co>"]
+description = "High-level interface to RTL-SDR"
 license = "GPLv2"
+documentation = "http://kchmck.github.io/doc/rtlsdr/"
+repository = "https://github.com/kchmck/rtlsdr.rs"
+keywords = ["rtl-sdr", "librtlsdr", "threading", "multithread"]
 
 [dependencies]
 
-libc = "^0.2.8"
-rtlsdr_sys = {version = "^1.0.0", git = "https://github.com/kchmck/rtlsdr_sys.rs"}
+libc = "0.2.8"
+rtlsdr_sys = {version = "1.0.0", git = "https://github.com/kchmck/rtlsdr_sys.rs"}
