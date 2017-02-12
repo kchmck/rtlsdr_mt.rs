@@ -1,6 +1,6 @@
 [package]
 name = "rtlsdr"
-version = "1.0.0"
+version = "2.0.0"
 authors = ["Mick Koch <mick@kochm.co>"]
 description = "High-level interface to RTL-SDR"
 license = "GPLv2"
