@@ -35,9 +35,9 @@ pub fn devices() -> impl Iterator<Item = &'static CStr> {
 /// Try to open the RTL-SDR device at the given index.
 ///
 /// Return a controller and reader for the device on success.
-pub fn open(idx: u32) -> Result<(Control, Reader)> {
+pub fn open(idx: u32) -> Result<(Controller, Reader)> {
     Device::open(idx).map(|dev| Arc::new(dev)).map(|arc| {
-        (Control::new(arc.clone()), Reader::new(arc.clone()))
+        (Controller::new(arc.clone()), Reader::new(arc.clone()))
     })
 }
 
@@ -76,12 +76,12 @@ impl std::ops::Deref for Device {
 }
 
 /// Controls hardware parameters.
-pub struct Control(Arc<Device>);
+pub struct Controller(Arc<Device>);
 
-impl Control {
-    /// Create a new `Control` for controlling the given device.
+impl Controller {
+    /// Create a new `Controller` for controlling the given device.
     fn new(dev: Arc<Device>) -> Self {
-        Control(dev)
+        Controller(dev)
     }
 
     /// Get the current sample rate (megasamples/sec).
@@ -193,7 +193,7 @@ impl Control {
     }
 }
 
-unsafe impl Send for Control {}
+unsafe impl Send for Controller {}
 
 /// Reads I/Q samples.
 pub struct Reader(Arc<Device>);
