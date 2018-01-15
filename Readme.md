@@ -1,6 +1,6 @@
-# rtlsdr.rs -- High-level interface to RTL-SDR
+# rtlsdr\_mt – High-level, multithreading interface to RTL-SDR
 
-[Documentation](http://kchmck.github.io/doc/rtlsdr/)
+[Documentation](https://docs.rs/rtlsdr_mt)
 
 This crate provides a high-level interface to the RTL-SDR that separates controlling
 the device and reading samples, for integration into multithreaded applications.
@@ -10,8 +10,8 @@ the device and reading samples, for integration into multithreaded applications.
 This example reads incoming samples, printing the first I/Q pair, in the main thread
 while incrementing the receive frequency by 1kHz every second in a subthread.
 
-```rust,no_run
-let (mut ctl, mut reader) = rtlsdr::open(0).unwrap();
+```rust
+let (mut ctl, mut reader) = rtlsdr_mt::open(0).unwrap();
 
 ctl.enable_agc().unwrap();
 ctl.set_ppm(-2).unwrap();
@@ -38,10 +38,10 @@ This crate can be used through cargo by adding it as a dependency in `Cargo.toml
 
 ```toml
 [dependencies]
-rtlsdr = {git = "https://github.com/kchmck/rtlsdr.rs"}
+rtlsdr_mt = "2.0.0"
 ```
 and importing it in the crate root:
 
 ```rust
-extern crate rtlsdr;
+extern crate rtlsdr_mt;
 ```

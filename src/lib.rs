@@ -7,7 +7,7 @@
 //! while incrementing the receive frequency by 1kHz every second in a subthread.
 //!
 //! ```rust,no_run
-//! let (mut ctl, mut reader) = rtlsdr::open(0).unwrap();
+//! let (mut ctl, mut reader) = rtlsdr_mt::open(0).unwrap();
 //!
 //! ctl.enable_agc().unwrap();
 //! ctl.set_ppm(-2).unwrap();
