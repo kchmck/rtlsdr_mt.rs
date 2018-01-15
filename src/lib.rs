@@ -64,7 +64,7 @@ pub fn devices() -> impl Iterator<Item = &'static CStr> {
 /// Return a controller and reader for the device on success.
 pub fn open(idx: u32) -> Result<(Controller, Reader)> {
     Device::open(idx).map(|dev| Arc::new(dev)).map(|arc| {
-        (Controller::new(arc.clone()), Reader::new(arc.clone()))
+        (Controller::new(arc.clone()), Reader::new(arc))
     })
 }
 
