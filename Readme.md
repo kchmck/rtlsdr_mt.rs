@@ -1,6 +1,6 @@
 # rtlsdr\_mt – High-level, multithreading interface to RTL-SDR
 
-[Documentation](https://docs.rs/rtlsdr_mt)
+[Documentation](https://kchmck.github.io/doc/rtlsdr_mt/)
 
 This crate provides a high-level interface to the RTL-SDR that separates controlling
 the device and reading samples, for integration into multithreaded applications.

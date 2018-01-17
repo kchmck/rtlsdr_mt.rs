@@ -4,7 +4,7 @@ version = "2.0.0"
 authors = ["Mick Koch <mick@kochm.co>"]
 description = "High-level, multithreading interface to RTL-SDR"
 license = "GPL-2.0+"
-documentation = "https://docs.rs/rtlsdr_mt"
+documentation = "https://kchmck.github.io/doc/rtlsdr_mt/"
 repository = "https://github.com/kchmck/rtlsdr_mt.rs"
 keywords = ["rtl-sdr", "rtlsdr", "librtlsdr", "threading", "multithreading"]
 
