@@ -137,6 +137,9 @@ impl Controller {
         }
     }
 
+    /// Set tuner bandwidth (Hz).
+    ///
+    /// Note that this is not bit DEPTH which is fixed at 8 in hardware.
     pub fn set_bandwidth(&mut self, bw: u32) -> Result<()> {
         if unsafe { ffi::rtlsdr_set_tuner_bandwidth(**self.0, bw) } == 0 {
             Ok(())
