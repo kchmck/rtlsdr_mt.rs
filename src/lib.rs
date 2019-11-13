@@ -28,15 +28,13 @@
 //! }).unwrap();
 //! ```
 
-#![feature(conservative_impl_trait)]
-
 extern crate libc;
 extern crate rtlsdr_sys as ffi;
 
 use std::ffi::CStr;
 use std::sync::Arc;
 
-use libc::{c_uchar, uint32_t, c_void};
+use libc::{c_uchar, c_void};
 
 /// Holds a list of valid gain values.
 pub type TunerGains = [i32; 32];
@@ -133,6 +131,17 @@ impl Controller {
     /// Set the center frequency (Hz).
     pub fn set_center_freq(&mut self, freq: u32) -> Result<()> {
         if unsafe { ffi::rtlsdr_set_center_freq(**self.0, freq) } == 0 {
+            Ok(())
+        } else {
+            Err(())
+        }
+    }
+
+    /// Set tuner bandwidth (Hz).
+    ///
+    /// Note that this is not bit DEPTH which is fixed at 8 in hardware.
+    pub fn set_bandwidth(&mut self, bw: u32) -> Result<()> {
+        if unsafe { ffi::rtlsdr_set_tuner_bandwidth(**self.0, bw) } == 0 {
             Ok(())
         } else {
             Err(())
@@ -255,7 +264,7 @@ impl Reader {
 }
 
 /// Wraps a callback for use as a librtlsdr async callback.
-extern fn async_wrapper<F>(buf: *mut c_uchar, len: uint32_t, ctx: *mut c_void)
+extern fn async_wrapper<F>(buf: *mut c_uchar, len: u32, ctx: *mut c_void)
     where F: FnMut(&[u8])
 {
     let closure = ctx as *mut F;
