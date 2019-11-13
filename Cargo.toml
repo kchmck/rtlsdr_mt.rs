@@ -1,6 +1,6 @@
 [package]
 name = "rtlsdr_mt"
-version = "2.0.1"
+version = "2.1.0"
 authors = ["Mick Koch <mick@kochm.co>"]
 description = "High-level, multithreading interface to RTL-SDR"
 license = "GPL-2.0+"
