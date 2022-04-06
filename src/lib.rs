@@ -227,6 +227,18 @@ impl Controller {
     pub fn cancel_async_read(&mut self) {
         unsafe { ffi::rtlsdr_cancel_async(**self.0); }
     }
+
+    /// Reset device's buffer of incoming samples.
+    ///
+    /// This will clear any samples that have been received by the device but not yet read
+    /// by an async_read.
+    pub fn reset_buffer(&mut self) -> Result<()> {
+        if unsafe { ffi::rtlsdr_reset_buffer(**self.0) } == 0 {
+            Ok(())
+        } else {
+            Err(())
+        }
+    }
 }
 
 unsafe impl Send for Controller {}
