@@ -34,7 +34,7 @@ extern crate rtlsdr_sys as ffi;
 use std::ffi::CStr;
 use std::sync::Arc;
 
-use libc::{c_uchar, c_void};
+use libc::{c_char, c_uchar, c_void};
 
 /// Holds a list of valid gain values.
 pub type TunerGains = [i32; 32];
@@ -52,8 +52,53 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub fn devices() -> impl Iterator<Item = &'static CStr> {
     let count = unsafe { ffi::rtlsdr_get_device_count() };
 
+    (0..count).map(|idx| unsafe { CStr::from_ptr(ffi::rtlsdr_get_device_name(idx)) })
+}
+
+#[derive(Debug)]
+pub struct UsbInfo {
+    pub manufact: String,
+    pub product: String,
+    pub serial: String,
+    pub index: u32,
+    pub error: i32,
+}
+
+/// Create an iterator over available RTL-SDR devices.
+///
+/// The iterator yields device info in index order, so the device with the first yielded
+/// name can be opened at index 0, and so on.
+pub fn devices_by_usbinfo() -> impl Iterator<Item = UsbInfo> {
+    let count = unsafe { ffi::rtlsdr_get_device_count() };
+
     (0..count).map(|idx| unsafe {
-        CStr::from_ptr(ffi::rtlsdr_get_device_name(idx))
+        let manufact = (&mut [0 as c_char; 256]).as_mut_ptr();
+        let product = (&mut [0 as c_char; 256]).as_mut_ptr();
+        let serial = (&mut [0 as c_char; 256]).as_mut_ptr();
+        let info = ffi::rtlsdr_get_device_usb_strings(idx, manufact, product, serial);
+        if info < 0 {
+            return UsbInfo {
+                error: info,
+                index: idx,
+                manufact: String::from("Error"),
+                product: String::from("Error"),
+                serial: String::from("Error"),
+            };
+        }
+
+        let m = CStr::from_ptr(manufact).to_str().unwrap().to_owned();
+        let p = CStr::from_ptr(product).to_str().unwrap().to_owned();
+        let s = CStr::from_ptr(serial).to_str().unwrap().to_owned();
+
+        print!("man {:?}, {:?}, {:?}", m, p, s);
+
+        return UsbInfo {
+            error: 0,
+            index: idx,
+            manufact: m,
+            product: p,
+            serial: s,
+        };
     })
 }
 
@@ -61,9 +106,9 @@ pub fn devices() -> impl Iterator<Item = &'static CStr> {
 ///
 /// Return a controller and reader for the device on success.
 pub fn open(idx: u32) -> Result<(Controller, Reader)> {
-    Device::open(idx).map(|dev| Arc::new(dev)).map(|arc| {
-        (Controller::new(arc.clone()), Reader::new(arc))
-    })
+    Device::open(idx)
+        .map(|dev| Arc::new(dev))
+        .map(|arc| (Controller::new(arc.clone()), Reader::new(arc)))
 }
 
 /// Wraps a raw device pointer.
@@ -74,8 +119,8 @@ impl Device {
     fn open(idx: u32) -> Result<Self> {
         let mut dev = Device(std::ptr::null_mut());
 
-        if unsafe { ffi::rtlsdr_open(&mut dev.0, idx) } == 0 &&
-           unsafe { ffi::rtlsdr_reset_buffer(dev.0) } == 0
+        if unsafe { ffi::rtlsdr_open(&mut dev.0, idx) } == 0
+            && unsafe { ffi::rtlsdr_reset_buffer(dev.0) } == 0
         {
             Ok(dev)
         } else {
@@ -85,7 +130,9 @@ impl Device {
 
     /// Close the device.
     fn close(&self) {
-        unsafe { ffi::rtlsdr_close(self.0); }
+        unsafe {
+            ffi::rtlsdr_close(self.0);
+        }
     }
 }
 
@@ -97,7 +144,9 @@ impl std::ops::Drop for Device {
 
 impl std::ops::Deref for Device {
     type Target = ffi::rtlsdr_dev_t;
-    fn deref(&self) -> &Self::Target { &self.0 }
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
 /// Controls hardware parameters.
@@ -169,8 +218,8 @@ impl Controller {
     ///
     /// Note that this also disables manual tuner gain.
     pub fn enable_agc(&mut self) -> Result<()> {
-        if unsafe { ffi::rtlsdr_set_tuner_gain_mode(**self.0, 0) } == 0 &&
-           unsafe { ffi::rtlsdr_set_agc_mode(**self.0, 1) } == 0
+        if unsafe { ffi::rtlsdr_set_tuner_gain_mode(**self.0, 0) } == 0
+            && unsafe { ffi::rtlsdr_set_agc_mode(**self.0, 1) } == 0
         {
             Ok(())
         } else {
@@ -182,8 +231,8 @@ impl Controller {
     ///
     /// Note that this also enables manual tuner gain.
     pub fn disable_agc(&mut self) -> Result<()> {
-        if unsafe { ffi::rtlsdr_set_tuner_gain_mode(**self.0, 1) } == 0 &&
-           unsafe { ffi::rtlsdr_set_agc_mode(**self.0, 0) } == 0
+        if unsafe { ffi::rtlsdr_set_tuner_gain_mode(**self.0, 1) } == 0
+            && unsafe { ffi::rtlsdr_set_agc_mode(**self.0, 0) } == 0
         {
             Ok(())
         } else {
@@ -196,9 +245,7 @@ impl Controller {
     /// Each value represents a dB gain with the decimal place shifted right. For example,
     /// the value 496 represents 49.6dB.
     pub fn tuner_gains<'a>(&self, gains: &'a mut TunerGains) -> &'a [i32] {
-        let ret = unsafe {
-            ffi::rtlsdr_get_tuner_gains(**self.0, gains.as_mut_ptr())
-        };
+        let ret = unsafe { ffi::rtlsdr_get_tuner_gains(**self.0, gains.as_mut_ptr()) };
 
         assert!(ret > 0 && ret as usize <= gains.len());
 
@@ -214,8 +261,8 @@ impl Controller {
     ///
     /// Note that this also disables the hardware AGC.
     pub fn set_tuner_gain(&mut self, gain: i32) -> Result<()> {
-        if unsafe { ffi::rtlsdr_set_tuner_gain_mode(**self.0, 1) } == 0 &&
-           unsafe { ffi::rtlsdr_set_tuner_gain(**self.0, gain) } == 0
+        if unsafe { ffi::rtlsdr_set_tuner_gain_mode(**self.0, 1) } == 0
+            && unsafe { ffi::rtlsdr_set_tuner_gain(**self.0, gain) } == 0
         {
             Ok(())
         } else {
@@ -225,7 +272,9 @@ impl Controller {
 
     /// Cancel an asynchronous read if one is running.
     pub fn cancel_async_read(&mut self) {
-        unsafe { ffi::rtlsdr_cancel_async(**self.0); }
+        unsafe {
+            ffi::rtlsdr_cancel_async(**self.0);
+        }
     }
 
     /// Reset device's buffer of incoming samples.
@@ -259,13 +308,12 @@ impl Reader {
     /// This function blocks until the read is cancelled or otherwise terminated. Hardware
     /// parameters can be changed in a separate thread while this function is running.
     pub fn read_async<F>(&mut self, bufs: u32, len: u32, cb: F) -> Result<()>
-        where F: FnMut(&[u8])
+    where
+        F: FnMut(&[u8]),
     {
         let ctx = &cb as *const _ as *mut c_void;
 
-        let ret = unsafe {
-            ffi::rtlsdr_read_async(**self.0, async_wrapper::<F>, ctx, bufs, len)
-        };
+        let ret = unsafe { ffi::rtlsdr_read_async(**self.0, async_wrapper::<F>, ctx, bufs, len) };
 
         if ret == 0 {
             Ok(())
@@ -276,11 +324,49 @@ impl Reader {
 }
 
 /// Wraps a callback for use as a librtlsdr async callback.
-extern fn async_wrapper<F>(buf: *mut c_uchar, len: u32, ctx: *mut c_void)
-    where F: FnMut(&[u8])
+extern "C" fn async_wrapper<F>(buf: *mut c_uchar, len: u32, ctx: *mut c_void)
+where
+    F: FnMut(&[u8]),
 {
     let closure = ctx as *mut F;
-    unsafe { (*closure)(std::slice::from_raw_parts(buf, len as usize)); }
+    unsafe {
+        (*closure)(std::slice::from_raw_parts(buf, len as usize));
+    }
 }
 
 unsafe impl Send for Reader {}
+
+#[cfg(test)]
+mod tests {
+    use crate::devices;
+    use crate::devices_by_usbinfo;
+
+    #[test]
+    fn test_device_by_usbinfo_count() {
+        let iter = devices_by_usbinfo();
+
+        assert!(
+            iter.count() > 0,
+            "Expected number of devices to be greater than 0"
+        );
+    }
+
+    #[test]
+    fn test_device_by_usbinfo() {
+        //assert!(false, "Duck");
+        let iter = devices_by_usbinfo();
+
+        for val in iter {
+            assert!(val.error == 0, "Expected error to be 0");
+            //assert!("00000003".eq(val.serial.), "Expected error to be 00000003");
+            match val.serial == String::from("00000003") {
+                false => assert!(
+                    false,
+                    "Expected error to be 00000003, {}",
+                    val.serial.trim()
+                ),
+                _ => print!("Value = {:?}", val),
+            }
+        }
+    }
+}
